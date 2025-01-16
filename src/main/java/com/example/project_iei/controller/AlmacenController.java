@@ -1,12 +1,15 @@
 package com.example.project_iei.controller;
 
 import com.example.project_iei.Utilidades.CsvConverter;
+import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.Utilidades.XmlConverter;
 import com.example.project_iei.entity.Monumento;
 import com.example.project_iei.mapper.MonumentoMapperFromCSV;
 import com.example.project_iei.mapper.MonumentoMapperFromXML;
 import com.example.project_iei.mapper.MonumentoMapperFromJSON;
+import com.example.project_iei.service.LocalidadService;
 import com.example.project_iei.service.MonumentoService;
+import com.example.project_iei.service.ProvinciaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,17 +25,21 @@ import java.util.List;
 @Controller
 public class AlmacenController {
     @Autowired
-    private  XmlConverter xmlConverter;
+    private XmlConverter xmlConverter;
     @Autowired
-    private  CsvConverter csvConverter;
+    private CsvConverter csvConverter;
     @Autowired
-    private  MonumentoMapperFromXML monumentoMapperFromXML;
+    private MonumentoMapperFromXML monumentoMapperFromXML;
     @Autowired
-    private  MonumentoMapperFromCSV monumentoMapperFromCSV;
+    private MonumentoMapperFromCSV monumentoMapperFromCSV;
     @Autowired
-    private  MonumentoMapperFromJSON monumentoMapperFromJSON;
+    private MonumentoMapperFromJSON monumentoMapperFromJSON;
     @Autowired
-    private  MonumentoService monumentoService;
+    private MonumentoService monumentoService;
+    @Autowired
+    private LocalidadService localidadService;
+    @Autowired
+    private ProvinciaService provinciaService;
 
 
     @GetMapping("/")
@@ -58,6 +65,7 @@ public class AlmacenController {
         }
 
         List<Monumento> monumentosCargados = new ArrayList<>();
+        List<Monumento> monumentosSinDuplicados = new ArrayList<>();
         List<String> erroresReparados = new ArrayList<>();
         List<String> erroresRechazados = new ArrayList<>();
         int registrosCargados = 0;
@@ -90,11 +98,14 @@ public class AlmacenController {
                         throw new IllegalArgumentException("Fuente desconocida: " + fuente);
                 }
             } catch (Exception e) {
-                erroresRechazados.add("Fuente: " + fuente + ", Error: " + e.getMessage());
+                System.out.println("Error: " + e.getMessage());
             }
         }
 
-        registrosCargados = monumentosCargados.size();
+        monumentosSinDuplicados = monumentosCargados.stream()
+                .filter(Utilidades.distinctByKey(Monumento::getNombre)).toList();
+
+        registrosCargados = monumentosSinDuplicados.size();
         monumentoService.guardarMonumentos(monumentosCargados);
 
         model.addAttribute("cargadosCorrectos", registrosCargados);
@@ -102,5 +113,18 @@ public class AlmacenController {
         model.addAttribute("erroresRechazados", erroresRechazados);
 
         return "cargar";
+    }
+
+    @PostMapping("/almacen/borrar")
+    public String borrarBaseDeDatos(Model model) {
+        try {
+            monumentoService.borrarTodos();
+            localidadService.borrarTodos();
+            provinciaService.borrarTodos();
+            model.addAttribute("mensaje", "Base de datos borrada correctamente.");
+        } catch (Exception e) {
+            model.addAttribute("error", "Error al borrar la base de datos: " + e.getMessage());
+        }
+        return "cargar"; // Redirige al formulario de carga
     }
 }

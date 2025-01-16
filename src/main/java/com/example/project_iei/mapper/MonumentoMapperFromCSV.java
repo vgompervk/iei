@@ -27,7 +27,6 @@ import java.util.Objects;
 @Component
 public class MonumentoMapperFromCSV {
 
-    private static final String UTM_ZONE = "30";
 
     public static List<Monumento> mapJsonToMonumentos(String json) throws IOException {
         List<Monumento> monumentos = new ArrayList<>();
@@ -59,7 +58,7 @@ public class MonumentoMapperFromCSV {
 
                     monumento.setLocalidad(new Localidad());
 
-                    datosUtm = convertUTMToLatLng(node.get("UTMESTE").asDouble(), node.get("UTMNORTE").asDouble(), UTM_ZONE);
+                    datosUtm = convertUTMToLatLng(node.get("UTMESTE").asInt(), node.get("UTMNORTE").asInt());
                     monumento.setLatitud(Double.valueOf(datosUtm.get(0)));
                     monumento.setLongitud(Double.valueOf(datosUtm.get(1)));
                     monumento.setDireccion(datosUtm.get(2));

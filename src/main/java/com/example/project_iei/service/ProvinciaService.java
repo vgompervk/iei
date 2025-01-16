@@ -11,4 +11,8 @@ public class ProvinciaService {
 
     @Autowired
     private ProvinciaRepository provinciaRepository;
+
+    public void borrarTodos(){
+        provinciaRepository.deleteAll();
+    }
 }

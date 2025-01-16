@@ -10,4 +10,9 @@ public class LocalidadService {
 
     @Autowired
     private LocalidadRepository localidadRepository;
+
+    public void borrarTodos(){
+        localidadRepository.deleteAll();
+    }
+
 }

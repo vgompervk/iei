@@ -23,6 +23,10 @@ public class MonumentoService {
     @Autowired
     private ProvinciaRepository provinciaRepository;
 
+    public void borrarTodos(){
+        monumentoRepository.deleteAll();
+    }
+
     public void guardarMonumentos(List<Monumento> monumentos) {
         List<Monumento> monumentosSinDuplicados = monumentos.stream()
                 .filter(Utilidades.distinctByKey(Monumento::getNombre)).toList();

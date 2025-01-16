@@ -11,9 +11,11 @@
     <label><input type="checkbox" class="fuenteCheckbox" name="fuente" value="Castilla y León"> Castilla y León</label><br>
     <label><input type="checkbox" class="fuenteCheckbox" name="fuente" value="Comunitat Valenciana"> Comunitat Valenciana</label><br>
     <label><input type="checkbox" class="fuenteCheckbox" name="fuente" value="Euskadi"> Euskadi</label><br>
-
     <button type="submit">Cargar</button>
     <button type="reset">Cancelar</button>
+</form>
+<form th:action="@{/almacen/borrar}" method="post" style="margin-top: 20px;">
+    <button type="submit" style="background-color: red; color: white;">Borrar Base de Datos</button>
 </form>
 
 <h2>Resultados de la carga:</h2>
