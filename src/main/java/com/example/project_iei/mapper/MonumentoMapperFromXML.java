@@ -8,11 +8,12 @@ import com.example.project_iei.entity.TipoMonumento;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+@Component
 public class MonumentoMapperFromXML {
 
 
