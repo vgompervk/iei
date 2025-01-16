@@ -121,16 +121,12 @@
 
     <h3>Registros con errores y reparados:</h3>
     <ul>
-        <li th:each="error : ${erroresReparados}">
-            {Fuente de datos, nombre, Localidad, motivo del error, operación realizada}
-        </li>
+        <li th:each="error : ${erroresReparados}" th:text="${error}"/>
     </ul>
 
     <h3>Registros con errores y rechazados:</h3>
     <ul>
-        <li th:each="error : ${erroresRechazados}">
-            {Fuente de datos, nombre, Localidad, motivo del error}
-        </li>
+        <li th:each="error : ${erroresRechazados}" th:text="${error}"/>
     </ul>
 </div>
 

@@ -139,5 +139,13 @@
 			</plugin>
 		</plugins>
 	</build>
-
+	<profiles>
+		<profile>
+			<id>debug</id>
+			<properties>
+				<spring-boot.run.fork>false</spring-boot.run.fork>
+				<spring-boot.run.jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005</spring-boot.run.jvmArguments>
+			</properties>
+		</profile>
+	</profiles>
 </project>

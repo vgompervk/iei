@@ -74,8 +74,10 @@ public class MonumentoMapperFromXML {
                         }
                     }
                     monumentos.add(monumento);
+                }else if(comprobacionMonumentoValido(monumentoNode).equals("CHECK")){
+                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + monumento.getLocalidad().getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
                 }else{
-                    fallos.add(monumento.getNombre() + " : " + comprobacionMonumentoValido(monumentoNode));
+                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + monumento.getLocalidad().getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
                 }
             }
         }

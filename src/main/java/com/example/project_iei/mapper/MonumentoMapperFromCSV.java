@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 @Component
 public class MonumentoMapperFromCSV {
 
@@ -84,13 +85,15 @@ public class MonumentoMapperFromCSV {
                     }
 
                     // Agregar el objeto a la lista
-                    if(monumento.getCodigo_postal() != null && !monumento.getCodigo_postal().isBlank()) {
+                    if (monumento.getCodigo_postal() != null && !monumento.getCodigo_postal().isBlank()) {
                         monumentos.add(monumento);
-                    }else{
+                    } else {
                         fallos.add(monumento.getNombre() + " : " + "(No se pudo obtener el codigo postal a través de la API)");
                     }
-                } else {
-                    fallos.add(monumento.getNombre() + " : " + comprobacionMonumentoValido(node));
+                }else if(comprobacionMonumentoValido(node).equals("CHECK")){
+                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + monumento.getLocalidad().getNombre() + ", " + comprobacionMonumentoValido(node));
+                }else{
+                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + monumento.getLocalidad().getNombre() + ", " + comprobacionMonumentoValido(node));
                 }
             }
         }
@@ -107,7 +110,6 @@ public class MonumentoMapperFromCSV {
         resultado.setFallosRechazados(fallos);
         return resultado;
     }
-
 
 
     public static List<String> convertUTMToLatLng(int utmE, int utmN) {
@@ -154,7 +156,7 @@ public class MonumentoMapperFromCSV {
             // Agregar los resultados a la lista
             result.add(longitud.getAttribute("value"));
             result.add(latitud.getAttribute("value"));
-            result.addAll(Utilidades.getGeocodingInfo(Double.valueOf(latitud.getAttribute("value")),Double.valueOf(longitud.getAttribute("value"))));
+            result.addAll(Utilidades.getGeocodingInfo(Double.valueOf(latitud.getAttribute("value")), Double.valueOf(longitud.getAttribute("value"))));
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -171,9 +173,9 @@ public class MonumentoMapperFromCSV {
             return "(No se encontró el valor de UTMESTE)";
         } else if (node.get("UTMNORTE") == null || node.get("UTMNORTE").asText().isBlank()) {
             return "(No se encontró el valor de UTMNORTE)";
-        }else if (node.get("PROVINCIA") == null || node.get("PROVINCIA").asText().isBlank()) {
+        } else if (node.get("PROVINCIA") == null || node.get("PROVINCIA").asText().isBlank()) {
             return "(No se encontró la provincia)";
-        }else if(!Utilidades.isProvinciaCV(node.get("PROVINCIA").asText())){
+        } else if (!Utilidades.isProvinciaCV(node.get("PROVINCIA").asText())) {
             return "(Valor de provincia no válido : " + node.get("PROVINCIA").asText() + ")";
         } else {
             return "OK";
