@@ -71,9 +71,9 @@ public class MonumentoMapperFromJSON {
                     // Agregar a la lista
                     monumentos.add(monumento);
                 }else if(comprobacionMonumentoValido(monumentoNode).equals("CHECK")){
-                    fallos.add("Fuente de datos: EUS, " + monumento.getNombre() + ", " + monumento.getLocalidad().getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
+                    fallos.add("Fuente de datos: EUS, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
                 }else{
-                    fallos.add("Fuente de datos: EUS, " + monumento.getNombre() + ", " + monumento.getLocalidad().getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
+                    fallos.add("Fuente de datos: EUS, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
                 }
             }
         }

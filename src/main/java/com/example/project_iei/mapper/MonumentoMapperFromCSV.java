@@ -91,9 +91,9 @@ public class MonumentoMapperFromCSV {
                         fallos.add(monumento.getNombre() + " : " + "(No se pudo obtener el codigo postal a través de la API)");
                     }
                 }else if(comprobacionMonumentoValido(node).equals("CHECK")){
-                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + monumento.getLocalidad().getNombre() + ", " + comprobacionMonumentoValido(node));
+                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(node));
                 }else{
-                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + monumento.getLocalidad().getNombre() + ", " + comprobacionMonumentoValido(node));
+                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(node));
                 }
             }
         }
@@ -125,33 +125,30 @@ public class MonumentoMapperFromCSV {
         WebDriver driver = new ChromeDriver(options);
         try {
             // Navegar a la página
-            driver.get("https://franzpc.com/apps/conversor-coordenadas-geograficas-utm.html");
+            driver.get("http://atlascajamarca.pe/conversor/index.html");
 
             // Esperar y hacer clic en el radio button "utm"
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
             // Rellenar los campos de entrada de coordenadas
-            WebElement inputZone = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("utmZone")));
+            WebElement inputZone = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtZone3")));
             inputZone.sendKeys("30");
 
-            Select inputHemi = new Select(driver.findElement(By.id("utmHemi")));
-            inputHemi.selectByValue("N");
-
-            WebElement inputY = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("utmEasting")));
-            inputY.clear();
-            inputY.sendKeys(String.valueOf(utmN));
-
-            WebElement inputX = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("utmNorthing")));
+            WebElement inputX = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtX3")));
             inputX.clear();
-            inputX.sendKeys(String.valueOf(utmE));
+            inputX.sendKeys(String.valueOf(utmN));
+
+            WebElement inputY = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtY3")));
+            inputY.clear();
+            inputY.sendKeys(String.valueOf(utmE));
 
             // Hacer clic en el botón de calcular
             WebElement calculateButton = driver.findElement(By.xpath("//button[contains(text(), 'Convertir UTM Estándar')]"));
             calculateButton.click();
 
             // Esperar a que aparezcan los resultados
-            WebElement latitud = driver.findElement(By.id("decimalLatitude"));
-            WebElement longitud = driver.findElement(By.id("decimalLongitude"));
+            WebElement latitud = driver.findElement(By.id("txtLat4"));
+            WebElement longitud = driver.findElement(By.id("txtLon4"));
 
             // Agregar los resultados a la lista
             result.add(longitud.getAttribute("value"));
