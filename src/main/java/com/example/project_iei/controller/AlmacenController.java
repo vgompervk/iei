@@ -4,6 +4,7 @@ import com.example.project_iei.Utilidades.CsvConverter;
 import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.Utilidades.XmlConverter;
 import com.example.project_iei.entity.Monumento;
+import com.example.project_iei.entity.TuplaMonumentosErrores;
 import com.example.project_iei.mapper.MonumentoMapperFromCSV;
 import com.example.project_iei.mapper.MonumentoMapperFromXML;
 import com.example.project_iei.mapper.MonumentoMapperFromJSON;
@@ -77,21 +78,37 @@ public class AlmacenController {
                         // Proceso para XML
                         String filePathXML = "C:\\projects-iei\\monumentos.xml";
                         String jsonResult = xmlConverter.convert(new File(filePathXML));
-                        monumentosCargados.addAll(monumentoMapperFromXML.mapJsonToMonumentos(jsonResult));
+                        TuplaMonumentosErrores tupla = new TuplaMonumentosErrores();
+                        tupla = monumentoMapperFromXML.mapJsonToMonumentos(jsonResult);
+                        monumentosCargados.addAll(tupla.getMonumentos());
+                        erroresReparados.addAll(tupla.getFallosReparados());
+                        erroresRechazados.addAll(tupla.getFallosRechazados());
                         break;
                     }
                     case "Comunitat Valenciana": {
                         // Proceso para CSV
                         String filePathCSV = "C:\\projects-iei\\bienes_inmuebles_interes_cultural.csv";
                         String jsonResult = csvConverter.convert(new File(filePathCSV));
-                        monumentosCargados.addAll(monumentoMapperFromCSV.mapJsonToMonumentos(jsonResult));
+                        TuplaMonumentosErrores tupla = new TuplaMonumentosErrores();
+                        tupla = monumentoMapperFromCSV.mapJsonToMonumentos(jsonResult);
+                        monumentosCargados.addAll(tupla.getMonumentos());
+                        erroresReparados.addAll(tupla.getFallosReparados());
+                        erroresRechazados.addAll(tupla.getFallosRechazados());
                         break;
                     }
                     case "Euskadi": {
                         // Proceso para JSON
                         String filePathJSON = "C:\\projects-iei\\edificios.json";
-                        String jsonResult = new String(Files.readAllBytes(new File(filePathJSON).toPath()));
-                        monumentosCargados.addAll(monumentoMapperFromJSON.mapJsonToMonumentos(jsonResult));
+                        File fileJSON = new File(filePathJSON);
+                        String jsonResult = "";
+                        List<String> lines = Files.readAllLines(fileJSON.toPath());
+                        lines.removeIf(line -> line.trim().equals("\"address\" : \"\","));
+                        jsonResult = String.join("", lines);
+                        TuplaMonumentosErrores tupla = new TuplaMonumentosErrores();
+                        tupla = monumentoMapperFromJSON.mapJsonToMonumentos(jsonResult);
+                        monumentosCargados.addAll(tupla.getMonumentos());
+                        erroresReparados.addAll(tupla.getFallosReparados());
+                        erroresRechazados.addAll(tupla.getFallosRechazados());
                         break;
                     }
                     default:

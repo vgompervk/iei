@@ -1,10 +1,7 @@
 package com.example.project_iei.mapper;
 
 import com.example.project_iei.Utilidades.Utilidades;
-import com.example.project_iei.entity.Localidad;
-import com.example.project_iei.entity.Monumento;
-import com.example.project_iei.entity.Provincia;
-import com.example.project_iei.entity.TipoMonumento;
+import com.example.project_iei.entity.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -18,7 +15,9 @@ import java.util.List;
 public class MonumentoMapperFromJSON {
 
 
-    public static List<Monumento> mapJsonToMonumentos(String json) throws IOException {
+    public static TuplaMonumentosErrores mapJsonToMonumentos(String json) throws IOException {
+        TuplaMonumentosErrores resultado = new TuplaMonumentosErrores();
+
         List<Monumento> monumentos = new ArrayList<>();
         List<String> fallos = new ArrayList<>();
 
@@ -84,7 +83,10 @@ public class MonumentoMapperFromJSON {
             }
             System.out.println("----------------------------------------------------------------------------------------------------------------------------");
         }
-        return monumentos;
+        resultado.setMonumentos(monumentos);
+        resultado.setFallosReparados(fallos);
+        resultado.setFallosRechazados(fallos);
+        return resultado;
     }
 
     public static String comprobacionMonumentoValido(JsonNode node){

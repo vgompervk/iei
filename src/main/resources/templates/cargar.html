@@ -2,33 +2,137 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Cargar Almacén de Datos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 1em;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+            vertical-align: middle;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button[type="submit"] {
+            background-color: #808080;
+            color: white;
+            margin-right: 10px;
+        }
+
+        button[type="reset"] {
+            background-color: white;
+            border: 1px solid #808080;
+            color: #808080;
+        }
+
+        button[type="submit"]:last-of-type {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        .results {
+            border: 1px solid #ccc;
+            background-color: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .results h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .results h3 {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+
+        .results p {
+            margin: 10px 0;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin: 5px 0;
+        }
+    </style>
 </head>
 <body>
 <h1>Carga del almacén de datos</h1>
 
 <form th:action="@{/almacen/cargar}" method="post">
-    <label><input type="checkbox" id="seleccionarTodo" onclick="toggleCheckboxes(this)"> Seleccionar todas</label><br>
-    <label><input type="checkbox" class="fuenteCheckbox" name="fuente" value="Castilla y León"> Castilla y León</label><br>
-    <label><input type="checkbox" class="fuenteCheckbox" name="fuente" value="Comunitat Valenciana"> Comunitat Valenciana</label><br>
-    <label><input type="checkbox" class="fuenteCheckbox" name="fuente" value="Euskadi"> Euskadi</label><br>
+    <label>
+        <input type="checkbox" id="seleccionarTodo" onclick="toggleCheckboxes(this)"> Seleccionar todas
+    </label>
+    <label>
+        <input type="checkbox" class="fuenteCheckbox" name="fuente" value="Castilla y León"> Castilla y León
+    </label>
+    <label>
+        <input type="checkbox" class="fuenteCheckbox" name="fuente" value="Comunitat Valenciana"> Comunitat Valenciana
+    </label>
+    <label>
+        <input type="checkbox" class="fuenteCheckbox" name="fuente" value="Euskadi"> Euskadi
+    </label>
     <button type="submit">Cargar</button>
     <button type="reset">Cancelar</button>
 </form>
-<form th:action="@{/almacen/borrar}" method="post" style="margin-top: 20px;">
-    <button type="submit" style="background-color: red; color: white;">Borrar Base de Datos</button>
+
+<form th:action="@{/almacen/borrar}" method="post">
+    <button type="submit">Borrar almacén de datos</button>
 </form>
 
-<h2>Resultados de la carga:</h2>
-<p th:if="${error}" th:text="${error}" style="color: red;"></p>
-<p>Número de registros cargados correctamente: <span th:text="${cargadosCorrectos}">0</span></p>
-<h3>Registros con errores y reparados:</h3>
-<ul>
-    <li th:each="error : ${erroresReparados}" th:text="${error}"></li>
-</ul>
-<h3>Registros con errores y rechazados:</h3>
-<ul>
-    <li th:each="error : ${erroresRechazados}" th:text="${error}"></li>
-</ul>
+<div class="results">
+    <h2>Resultados de la carga:</h2>
+    <p>Número de registros cargados correctamente: <span th:text="${cargadosCorrectos}">NN</span></p>
+
+    <h3>Registros con errores y reparados:</h3>
+    <ul>
+        <li th:each="error : ${erroresReparados}">
+            {Fuente de datos, nombre, Localidad, motivo del error, operación realizada}
+        </li>
+    </ul>
+
+    <h3>Registros con errores y rechazados:</h3>
+    <ul>
+        <li th:each="error : ${erroresRechazados}">
+            {Fuente de datos, nombre, Localidad, motivo del error}
+        </li>
+    </ul>
+</div>
 
 <script>
     function toggleCheckboxes(source) {
