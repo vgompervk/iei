@@ -18,7 +18,7 @@ public class MonumentoMapperFromXML {
 
     public static List<Monumento> mapJsonToMonumentos(String json) throws IOException {
         List<Monumento> monumentos = new ArrayList<>();
-        List<Monumento> monumentosFaileds = new ArrayList<>();
+        List<String> fallos = new ArrayList<>();
 
         // Parsear el JSON
         ObjectMapper objectMapper = new ObjectMapper();
@@ -34,30 +34,25 @@ public class MonumentoMapperFromXML {
                     monumento.setNombre(monumentoNode.get("nombre").asText());
                 }
 
-                JsonNode coordenadasNode = monumentoNode.get("coordenadas");
+                if (comprobacionMonumentoValido(monumentoNode).equals("OK")) {
 
-                if (!coordenadasNode.get("latitud").asText().isBlank() && coordenadasNode.get("latitud").asDouble() != 0
-                        && !coordenadasNode.get("longitud").asText().isBlank() && coordenadasNode.get("longitud").asDouble() != 0) {
-                    List<String> infoGeocoding = Utilidades.getGeocodingInfo(coordenadasNode.get("latitud").asDouble(), coordenadasNode.get("longitud").asDouble());
                     if (monumentoNode.get("tipoMonumento") != null) {
                         monumento.setTipo(TipoMonumento.findTipoMonumento(monumentoNode.get("tipoMonumento").asText()));
                     }
 
                     if (monumentoNode.get("calle") != null) {
                         monumento.setDireccion(monumentoNode.get("calle").asText());
-                    }else{
-                        monumento.setDireccion(infoGeocoding.get(0));
                     }
 
                     if (monumentoNode.get("codigoPostal") != null) {
                         monumento.setCodigo_postal(monumentoNode.get("codigoPostal").asText());
-                    }else{
-                        monumento.setCodigo_postal(infoGeocoding.get(1));
                     }
 
                     if(monumento.getCodigo_postal().length() == 4){
                         monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
                     }
+
+                    JsonNode coordenadasNode = monumentoNode.get("coordenadas");
 
                     monumento.setLatitud(coordenadasNode.get("latitud").asDouble());
                     monumento.setLongitud(coordenadasNode.get("longitud").asDouble());
@@ -76,24 +71,48 @@ public class MonumentoMapperFromXML {
                         monumento.setLocalidad(new Localidad());
                         if (poblacionNode.get("localidad") != null) {
                             monumento.getLocalidad().setNombre(poblacionNode.get("localidad").asText());
-                        }else{
-                            monumento.getLocalidad().setNombre(infoGeocoding.get(2));
                         }
                     }
                     monumentos.add(monumento);
                 }else{
-                    monumentosFaileds.add(monumento);
+                    fallos.add(monumento.getNombre() + " : " + comprobacionMonumentoValido(monumentoNode));
                 }
             }
         }
-        if(!monumentosFaileds.isEmpty()){
+        if(!fallos.isEmpty()){
             System.out.println("----------------------------------------------------------------------------------------------------------------------------");
-            System.out.println("Los siguientes monumentos no han sido insertados en la base de datos porque no tienen valores de longitud o latitud validos:");
-            for(Monumento monumento : monumentosFaileds){
-                System.out.println("\nMonumento: " + monumento.getNombre());
+            System.out.println("Los siguientes monumentos no han sido insertados en la base de datos:");
+            for(String fallo : fallos){
+                System.out.println(fallo);
             }
             System.out.println("----------------------------------------------------------------------------------------------------------------------------");
         }
         return monumentos;
+    }
+
+    public static String comprobacionMonumentoValido(JsonNode node){
+
+        JsonNode coordenadasNode = node.get("coordenadas");
+        JsonNode poblacionNode = node.get("poblacion");
+
+        if(coordenadasNode.get("latitud") == null || coordenadasNode.get("latitud").asText().isBlank()){
+            return "(No se encontró la latitud)";
+        }else if(coordenadasNode.get("longitud") == null || coordenadasNode.get("longitud").asText().isBlank()) {
+            return "(No se encontró la longitud)";
+        }else if(coordenadasNode.get("latitud").asDouble() < 20 || coordenadasNode.get("latitud").asDouble() > 50) {
+            return "(Valor de latitud no válido : " + coordenadasNode.get("latitud").asText() + ")";
+        }else if(coordenadasNode.get("longitud").asDouble() < -20 || coordenadasNode.get("longitud").asDouble() > 10) {
+            return "(Valor de longitud no válido : " + coordenadasNode.get("longitud").asText() + ")";
+        }else if(node.get("codigoPostal") == null || node.get("codigoPostal").asText().isBlank()){
+            return "(No se encontró el codigo postal)";
+        }else if(node.get("codigoPostal").asDouble() < 1001 || node.get("codigoPostal").asDouble() > 52006){ //
+            return "(Valor de codigo postal no válido : " + node.get("codigoPostal").asText() + ")";
+        }else if(poblacionNode.get("provincia") == null || poblacionNode.get("provincia").asText().isBlank()){
+            return "(No se encontró la provincia)";
+        }else if(!Utilidades.isProvinciaCLE(poblacionNode.get("provincia").asText())){
+            return "(Valor de provincia no válido : " + poblacionNode.get("provincia").asText() + ")";
+        }else{
+            return "OK";
+        }
     }
 }

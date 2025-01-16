@@ -8,26 +8,20 @@ import com.example.project_iei.mapper.MonumentoMapperFromCSV;
 import com.example.project_iei.mapper.MonumentoMapperFromJSON;
 import com.example.project_iei.mapper.MonumentoMapperFromXML;
 import com.example.project_iei.service.MonumentoService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 @SpringBootApplication
 public class ProjectIeiApplication {
 
 	public static void main(String[] args) {
+
 		ApplicationContext context = SpringApplication.run(ProjectIeiApplication.class, args);
 
 		List<Monumento> monumentos = new ArrayList<>();
@@ -51,21 +45,18 @@ public class ProjectIeiApplication {
 
 		//SI ES UN XML------------------------------------------------------------------------------------------------
 
-
-
-		jsonResult = xmlConverter.convert(fileXML);
-		MonumentoMapperFromXML mapperXML = new MonumentoMapperFromXML();
-
-		try {
-			monumentos = mapperXML.mapJsonToMonumentos(jsonResult);
-		}catch (IOException e){
-			System.out.println("Error: " + e);
-		}
+//		jsonResult = xmlConverter.convert(fileXML);
+//		MonumentoMapperFromXML mapperXML = new MonumentoMapperFromXML();
+//
+//		try {
+//			monumentos = mapperXML.mapJsonToMonumentos(jsonResult);
+//		}catch (IOException e){
+//			System.out.println("Error: " + e);
+//		}
 
 
 		//SI ES CSV------------------------------------------------------------------------------------------------
 
-/*
 
 		try {
 			jsonResult = csvConverter.convert(fileCSV);
@@ -82,30 +73,30 @@ public class ProjectIeiApplication {
 		}
 
 
- */
+
 
 
 		//SI ES JSON------------------------------------------------------------------------------------------------
 
-/*
 
-		try {
-			List<String> lines = Files.readAllLines(fileJSON.toPath());
 
-			lines.removeIf(line -> line.trim().equals("\"address\" : \"\","));
-			jsonResult = String.join("", lines);
-		}catch (IOException e){
-			e.printStackTrace();
-		}
+//		try {
+//			List<String> lines = Files.readAllLines(fileJSON.toPath());
+//
+//			lines.removeIf(line -> line.trim().equals("\"address\" : \"\","));
+//			jsonResult = String.join("", lines);
+//		}catch (IOException e){
+//			e.printStackTrace();
+//		}
+//
+//		MonumentoMapperFromJSON mapperJSON = new MonumentoMapperFromJSON();
+//
+//		try {
+//			monumentos = mapperJSON.mapJsonToMonumentos(jsonResult);
+//		}catch (IOException e){
+//			System.out.println("Error: " + e);
+//		}
 
-		MonumentoMapperFromJSON mapperJSON = new MonumentoMapperFromJSON();
-
-		try {
-			monumentos = mapperJSON.mapJsonToMonumentos(jsonResult);
-		}catch (IOException e){
-			System.out.println("Error: " + e);
-		}
- */
 
 		monumentoService.guardarMonumentos(monumentos);
 

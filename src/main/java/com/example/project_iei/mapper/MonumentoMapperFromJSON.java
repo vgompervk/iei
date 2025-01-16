@@ -8,6 +8,7 @@ import com.example.project_iei.entity.TipoMonumento;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jsoup.Jsoup;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,10 +34,10 @@ public class MonumentoMapperFromJSON {
                     monumento.setNombre(monumentoNode.get("documentName").asText());
                     monumento.setTipo(TipoMonumento.findTipoMonumento(monumentoNode.get("documentName").asText()));
                 }
-                if(comprobacionMonumentoValido(monumentoNode) == "OK") {
+                if(comprobacionMonumentoValido(monumentoNode).equals("OK")) {
 
                     if (monumentoNode.get("address") != null) {
-                        monumento.setDireccion(monumentoNode.get("address").asText());
+                        monumento.setDireccion(Jsoup.parse(monumentoNode.get("address").asText()).text());
                     }
 
                     if (!monumentoNode.get("postalCode").asText().isBlank()) {
@@ -49,8 +50,8 @@ public class MonumentoMapperFromJSON {
 
                     monumento.setLocalidad(new Localidad());
 
-                    if (monumentoNode.get("locality") != null) {
-                        monumento.getLocalidad().setNombre(monumentoNode.get("locality").asText());
+                    if (monumentoNode.get("municipality") != null) {
+                        monumento.getLocalidad().setNombre(monumentoNode.get("municipality").asText());
                     }
 
                     monumento.setLongitud(monumentoNode.get("latwgs84").asDouble());
@@ -86,21 +87,26 @@ public class MonumentoMapperFromJSON {
     }
 
     public static String comprobacionMonumentoValido(JsonNode node){
-        if(node.get("latwgs84").asText().isBlank() && node.get("lonwgs84").asText().isBlank()
-                && node.get("latwgs84").asDouble() == 0 && node.get("lonwgs84").asDouble() == 0
-                && node.get("latwgs84").asDouble() < 20 && node.get("latwgs84").asDouble() > 50
-                && node.get("lonwgs84").asDouble() < -20 && node.get("lonwgs84").asDouble() > 10) {
-            return "(Valores de longitud o latitud no validos)";
-        }else if(node.get("locality") == null || node.get("locality").asText().isBlank()){
+        if(node.get("latwgs84") == null || node.get("latwgs84").asText().isBlank()){
+            return "(No se encontró la latitud)";
+        }else if(node.get("lonwgs84") == null || node.get("lonwgs84").asText().isBlank()){
+            return "(No se encontró la longitud)";
+        }else if(node.get("latwgs84").asDouble() == 0 || node.get("latwgs84").asDouble() < 20 || node.get("latwgs84").asDouble() > 50) {
+            return "(Valor de latitud no válido : " + node.get("latwgs84").asText() + ")";
+        }else if(node.get("lonwgs84").asDouble() < -20 || node.get("lonwgs84").asDouble() > 10 || node.get("lonwgs84").asDouble() == 0) {
+            return "(Valor de longitud no válido : " + node.get("lonwgs84").asText() + ")";
+        }else if(node.get("municipality") == null || node.get("municipality").asText().isBlank()){
             return "(No se encontró la localidad)";
-        }else if(node.get("address") == null || node.get("address").asText().isBlank()){
-            return "(No se encontró la dirección)";
-        }else if(node.get("postalCode") == null || node.get("postalCode").asText().isBlank()){
-            return "(No se encontró el  código postal)";
+        }else if(node.get("postalCode") == null || node.get("postalCode").asText().isBlank()) {
+            return "(No se encontró el código postal)";
+        }else if(node.get("postalCode").asDouble() < 1001 || node.get("postalCode").asDouble() > 52006){
+            return "(Valor de codigo postal no válido : " + node.get("postalCode").asText() + ")";
         }else if(node.get("documentDescription" ) == null || node.get("documentDescription").asText().isBlank()){
             return "(No se encontró la descripcion)";
-        }else if(node.get("territory") == null || node.get("territory").asText().isBlank()){
+        }else if(node.get("territory") == null || node.get("territory").asText().isBlank()) {
             return "(No se encontró la provincia)";
+        }else if(!Utilidades.isProvinciaEUS(node.get("territory").asText())){
+            return "(Valor de provincia no válido : " + node.get("territory").asText() + ")";
         }else{
             return "OK";
         }

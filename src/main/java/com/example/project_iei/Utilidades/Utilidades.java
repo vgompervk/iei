@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Component
@@ -92,6 +93,58 @@ public class Utilidades implements Serializable{
             e.printStackTrace();
         }
         return result;
+    }
+
+    public static <T> java.util.function.Predicate<T> distinctByKey(java.util.function.Function<? super T, ?> keyExtractor) {
+        HashSet<Object> seen = new HashSet<>();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+
+    public static boolean isProvinciaCV(String provincia){
+        if(provincia.equalsIgnoreCase("Valencia") || provincia.equalsIgnoreCase("Castellón") ||
+                provincia.equalsIgnoreCase("Alicante") || provincia.equalsIgnoreCase("Castellon")){
+            return true;
+        }else {
+            return false;
+        }
+    }
+    public static boolean isProvinciaCLE(String provincia){
+        if(provincia.equalsIgnoreCase("León") || provincia.equalsIgnoreCase("Palencia") ||
+                provincia.equalsIgnoreCase("Burgos") || provincia.equalsIgnoreCase("Zamora") ||
+                provincia.equalsIgnoreCase("Valladolid") || provincia.equalsIgnoreCase("Soria") ||
+                provincia.equalsIgnoreCase("Segovia") || provincia.equalsIgnoreCase("Salamanca")||
+                provincia.equalsIgnoreCase("Leon") || provincia.equalsIgnoreCase("Avila")||
+                provincia.equalsIgnoreCase("Ávila")){
+            return true;
+        }else {
+            return false;
+        }
+    }
+    public static boolean isProvinciaEUS(String provincia){
+        if(provincia.equalsIgnoreCase("Gipuzkoa") || provincia.equalsIgnoreCase("Bizkaia") ||
+                provincia.equalsIgnoreCase("Araba/Álava") || provincia.equalsIgnoreCase("Araba/Alava")){
+            return true;
+        }else {
+            return false;
+        }
+    }
+
+    public static String anyadirTilde(String provincia){
+        switch (provincia.toLowerCase()) {
+            // Comunidad Valenciana
+            case "castellon":
+                return "CASTELLÓN";
+            // País Vasco
+            case "araba/alava":
+                return "Araba/Álava";
+            // Castilla y León
+            case "avila":
+                return "Ávila";
+            case "leon":
+                return "León";
+            default:
+                return provincia;
+        }
     }
 
 }

@@ -1,10 +1,8 @@
 package com.example.project_iei.entity;
 
+import com.example.project_iei.repository.ProvinciaRepository;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
@@ -15,6 +13,9 @@ public class Localidad {
     private Long id;
     @JsonProperty("nombre")
     private String nombre;
+    @ManyToOne
+    @JoinColumn(name = "id_provincia")
+    private Provincia provincia;
 
     public Long getId() {
         return id;
@@ -30,5 +31,13 @@ public class Localidad {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public Provincia getProvincia() {
+        return provincia;
+    }
+
+    public void setProvincia(Provincia provincia) {
+        this.provincia = provincia;
     }
 }

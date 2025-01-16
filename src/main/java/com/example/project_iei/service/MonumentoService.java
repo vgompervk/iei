@@ -1,5 +1,6 @@
 package com.example.project_iei.service;
 
+import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.entity.Localidad;
 import com.example.project_iei.entity.Monumento;
 import com.example.project_iei.entity.Provincia;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MonumentoService {
@@ -22,29 +24,28 @@ public class MonumentoService {
     private ProvinciaRepository provinciaRepository;
 
     public void guardarMonumentos(List<Monumento> monumentos) {
-        for(Monumento monumento : monumentos){
+        List<Monumento> monumentosSinDuplicados = monumentos.stream()
+                .filter(Utilidades.distinctByKey(Monumento::getNombre)).toList();
 
-            if (monumento.getLocalidad() != null && monumento.getLocalidad().getNombre() != null) {
-                String nombreLocalidad = monumento.getLocalidad().getNombre();
-                Localidad localidadExistente = localidadRepository.findByNombre(nombreLocalidad);
-                if (localidadExistente == null) {
-                    localidadExistente = new Localidad();
-                    localidadExistente.setNombre(nombreLocalidad);
-                    localidadExistente = localidadRepository.saveAndFlush(localidadExistente);
-                }
-                monumento.setLocalidad(localidadExistente);
+        for(Monumento monumento : monumentosSinDuplicados){
+            String nombreProvincia = monumento.getProvincia().getNombre();
+            Provincia provinciaExistente = provinciaRepository.findByNombre(Utilidades.anyadirTilde(nombreProvincia));
+            if (provinciaExistente == null) {
+                provinciaExistente = new Provincia();
+                provinciaExistente.setNombre(Utilidades.anyadirTilde(nombreProvincia));
+                provinciaExistente = provinciaRepository.saveAndFlush(provinciaExistente);
             }
+            monumento.setProvincia(provinciaExistente);
 
-            if (monumento.getProvincia() != null && monumento.getProvincia().getNombre() != null) {
-                String nombreProvincia = monumento.getProvincia().getNombre();
-                Provincia provinciaExistente = provinciaRepository.findByNombre(nombreProvincia);
-                if (provinciaExistente == null) {
-                    provinciaExistente = new Provincia();
-                    provinciaExistente.setNombre(nombreProvincia);
-                    provinciaExistente = provinciaRepository.saveAndFlush(provinciaExistente);
-                }
-                monumento.setProvincia(provinciaExistente);
+            String nombreLocalidad = monumento.getLocalidad().getNombre();
+            Localidad localidadExistente = localidadRepository.findByNombre(nombreLocalidad);
+            if (localidadExistente == null) {
+                localidadExistente = new Localidad();
+                localidadExistente.setNombre(nombreLocalidad);
+                localidadExistente.setProvincia(monumento.getProvincia());
+                localidadExistente = localidadRepository.saveAndFlush(localidadExistente);
             }
+            monumento.setLocalidad(localidadExistente);
 
             monumentoRepository.saveAndFlush(monumento);
         }
