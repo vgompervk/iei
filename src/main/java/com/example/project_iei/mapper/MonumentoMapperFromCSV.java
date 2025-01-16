@@ -13,7 +13,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Component;
 
@@ -107,48 +109,57 @@ public class MonumentoMapperFromCSV {
 
 
 
-    public static List<String> convertUTMToLatLng(double utmE, double utmN, String utmZone) {
-
+    public static List<String> convertUTMToLatLng(int utmE, int utmN) {
         List<String> result = new ArrayList<>();
 
-        WebDriver driver = new ChromeDriver();
-        driver.get("https://www.ign.es/web/calculadora-geodesica");
+        // Configura el driver de Chrome
+        System.setProperty("webdriver.chrome.driver", "C:\\projects-iei\\chromedriver.exe");
 
-        WebElement radioButton = new WebDriverWait(driver, Duration.ofSeconds(3))
-                .until(ExpectedConditions.elementToBeClickable(By.id("utm")));
-        radioButton.click();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1920,1080");
+        WebDriver driver = new ChromeDriver(options);
+        try {
+            // Navegar a la página
+            driver.get("https://franzpc.com/apps/conversor-coordenadas-geograficas-utm.html");
 
-        WebElement inputX = driver.findElement(By.id("datacoord1"));
+            // Esperar y hacer clic en el radio button "utm"
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        inputX.sendKeys(String.valueOf(utmN));
+            // Rellenar los campos de entrada de coordenadas
+            WebElement inputZone = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("utmZone")));
+            inputZone.sendKeys("30");
 
-        WebElement inputY = driver.findElement(By.id("datacoord2"));
+            Select inputHemi = new Select(driver.findElement(By.id("utmHemi")));
+            inputHemi.selectByValue("N");
 
-        inputY.sendKeys(String.valueOf(utmE));
+            WebElement inputY = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("utmEasting")));
+            inputY.clear();
+            inputY.sendKeys(String.valueOf(utmN));
 
-        driver.findElement(By.id("trd_calc")).click();
+            WebElement inputX = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("utmNorthing")));
+            inputX.clear();
+            inputX.sendKeys(String.valueOf(utmE));
 
-        WebDriverWait webDriverWait1 = new WebDriverWait(driver, Duration.ofSeconds(2));
+            // Hacer clic en el botón de calcular
+            WebElement calculateButton = driver.findElement(By.xpath("//button[contains(text(), 'Convertir UTM Estándar')]"));
+            calculateButton.click();
 
-        WebElement longitud = driver.findElement(By.id("txt_etrs89_longd"));
+            // Esperar a que aparezcan los resultados
+            WebElement latitud = driver.findElement(By.id("decimalLatitude"));
+            WebElement longitud = driver.findElement(By.id("decimalLongitude"));
 
-        WebElement latitud = driver.findElement(By.id("txt_etrs89_latgd"));
-
-        /*CRSFactory crsFactory = new CRSFactory();
-        CoordinateReferenceSystem utmCrs = crsFactory.createFromName("EPSG:326" + utmZone); // EPSG para UTM Norte
-        CoordinateReferenceSystem wgs84 = crsFactory.createFromName("EPSG:4326"); // WGS84 Lat/Lng
-
-        CoordinateTransformFactory transformFactory = new CoordinateTransformFactory();
-        CoordinateTransform transform = transformFactory.createTransform(utmCrs, wgs84);
-
-        ProjCoordinate source = new ProjCoordinate(utmN, utmE);
-        ProjCoordinate target = new ProjCoordinate();
-        transform.transform(source, target);
-
-        result.add(String.valueOf(target.x));
-        result.add(String.valueOf(target.y));*/
-
-        //result.addAll(Utilidades.getGeocodingInfo());
+            // Agregar los resultados a la lista
+            result.add(longitud.getAttribute("value"));
+            result.add(latitud.getAttribute("value"));
+            result.addAll(Utilidades.getGeocodingInfo(Double.valueOf(latitud.getAttribute("value")),Double.valueOf(longitud.getAttribute("value"))));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Cerrar el navegador
+            driver.quit();
+        }
 
         return result;
     }
