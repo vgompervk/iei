@@ -128,7 +128,7 @@ public class MonumentoMapperFromCSV {
             driver.get("http://atlascajamarca.pe/conversor/index.html");
 
             // Esperar y hacer clic en el radio button "utm"
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
             // Rellenar los campos de entrada de coordenadas
             WebElement inputZone = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtZone3")));
