@@ -143,7 +143,7 @@ public class MonumentoMapperFromCSV {
             inputY.sendKeys(String.valueOf(utmE));
 
             // Hacer clic en el botón de calcular
-            WebElement calculateButton = driver.findElement(By.xpath("//button[contains(text(), 'Convertir UTM Estándar')]"));
+            WebElement calculateButton = driver.findElement(By.xpath("//img[@onclick='cmdUTM2Lat_click();']"));
             calculateButton.click();
 
             // Esperar a que aparezcan los resultados
