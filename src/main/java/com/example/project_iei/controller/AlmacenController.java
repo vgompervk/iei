@@ -43,15 +43,6 @@ public class AlmacenController {
     @Autowired
     private ProvinciaService provinciaService;
 
-    /*@GetMapping("/almacen/cargar")
-    public String mostrarFormulario(Model model) {
-        // Inicializamos valores por defecto
-        model.addAttribute("cargadosCorrectos", 0);
-        model.addAttribute("erroresReparados", new ArrayList<>());
-        model.addAttribute("erroresRechazados", new ArrayList<>());
-        return "cargar"; // Muestra el formulario
-    }*/
-
     @PostMapping("/cargarMonumentos")
     public List<String> cargarAlmacen(@RequestBody List<String> fuentes) {
         List<Monumento> monumentosCargados = new ArrayList<>();
