@@ -53,6 +53,7 @@ public class MonumentoService {
             }
             monumento.setLocalidad(localidadExistente);
 
+            // Verificar si el monumento ya existe antes de guardarlo
             monumentoRepository.saveAndFlush(monumento);
         }
     }
@@ -60,5 +61,12 @@ public class MonumentoService {
     public List<Monumento> buscarMonumentos(String localidad, String codigoPostal, String provincia, String tipo) {
         Specification<Monumento> spec = MonumentoSpecification.buscarMonumentos(localidad, codigoPostal, provincia, tipo);
         return monumentoRepository.findAll(spec);
+    }
+
+    public List<Monumento> getAllMonumentos(){
+        return monumentoRepository.findAll();
+    }
+    public boolean existeMonumento(String nombre){
+        return monumentoRepository.findByNombre(nombre) != null;
     }
 }

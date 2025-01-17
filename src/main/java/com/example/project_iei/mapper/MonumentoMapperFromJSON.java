@@ -2,19 +2,24 @@ package com.example.project_iei.mapper;
 
 import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.entity.*;
+import com.example.project_iei.service.MonumentoService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 @Component
 public class MonumentoMapperFromJSON {
 
+    @Autowired
+    MonumentoService monumentoService;
 
-    public static ResultadoCargaMonumentos mapJsonToMonumentos(String json) throws IOException {
+    public ResultadoCargaMonumentos mapJsonToMonumentos(String json) throws IOException {
         ResultadoCargaMonumentos resultado = new ResultadoCargaMonumentos();
 
         List<Monumento> monumentos = new ArrayList<>();
@@ -34,7 +39,7 @@ public class MonumentoMapperFromJSON {
                     monumento.setNombre(monumentoNode.get("documentName").asText());
                     monumento.setTipo(TipoMonumento.findTipoMonumento(monumentoNode.get("documentName").asText()));
                 }
-                if(comprobacionMonumentoValido(monumentoNode).equals("OK")) {
+                if (comprobacionMonumentoValido(monumentoNode).equals("OK")) {
 
                     if (monumentoNode.get("address") != null) {
                         monumento.setDireccion(Jsoup.parse(monumentoNode.get("address").asText()).text());
@@ -44,7 +49,7 @@ public class MonumentoMapperFromJSON {
                         monumento.setCodigo_postal(monumentoNode.get("postalCode").asText());
                     }
 
-                    if(monumento.getCodigo_postal().length() == 4){
+                    if (monumento.getCodigo_postal().length() == 4) {
                         monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
                     }
 
@@ -68,18 +73,19 @@ public class MonumentoMapperFromJSON {
                         monumento.getProvincia().setNombre(monumentoNode.get("territory").asText());
                     }
 
-                    if(!Utilidades.anyadirTilde(monumento.getProvincia().getNombre()).equals(monumento.getProvincia().getNombre())){
+                    if (!Utilidades.anyadirTilde(monumento.getProvincia().getNombre()).equals(monumento.getProvincia().getNombre())) {
                         monumento.getProvincia().setNombre(Utilidades.anyadirTilde(monumento.getProvincia().getNombre()));
-                        fallosReparados.add("Fuente de datos: EUS. " + monumento.getNombre() + ". Operacion realizada: Reparar acento e insertar" );
+                        fallosReparados.add("Fuente de datos: EUS. " + monumento.getNombre() + ". Operacion realizada: Reparar acento e insertar");
                     }
                     if (monumento.getCodigo_postal().length() == 4) {
                         monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
-                        fallosReparados.add("Fuente de datos: EUS. " + monumento.getNombre() + ". Operacion realizada: Reparar codigo postal e insertar" );
+                        fallosReparados.add("Fuente de datos: EUS. " + monumento.getNombre() + ". Operacion realizada: Reparar codigo postal e insertar");
                     }
 
-                    // Agregar a la lista
-                    monumentos.add(monumento);
-                }else{
+                    if (!monumentoService.existeMonumento(monumento.getNombre())) {
+                        monumentos.add(monumento);
+                    }
+                } else {
                     fallosRechazados.add("Fuente de datos: EUS. " + monumento.getNombre() + " " + comprobacionMonumentoValido(monumentoNode));
                 }
 
@@ -91,28 +97,28 @@ public class MonumentoMapperFromJSON {
         return resultado;
     }
 
-    public static String comprobacionMonumentoValido(JsonNode node){
-        if(node.get("latwgs84") == null || node.get("latwgs84").asText().isBlank()){
+    public static String comprobacionMonumentoValido(JsonNode node) {
+        if (node.get("latwgs84") == null || node.get("latwgs84").asText().isBlank()) {
             return "(No se encontró la latitud)";
-        }else if(node.get("lonwgs84") == null || node.get("lonwgs84").asText().isBlank()){
+        } else if (node.get("lonwgs84") == null || node.get("lonwgs84").asText().isBlank()) {
             return "(No se encontró la longitud)";
-        }else if(node.get("latwgs84").asDouble() == 0 || node.get("latwgs84").asDouble() < 20 || node.get("latwgs84").asDouble() > 50) {
+        } else if (node.get("latwgs84").asDouble() == 0 || node.get("latwgs84").asDouble() < 20 || node.get("latwgs84").asDouble() > 50) {
             return "(Valor de latitud no válido : " + node.get("latwgs84").asText() + ")";
-        }else if(node.get("lonwgs84").asDouble() < -20 || node.get("lonwgs84").asDouble() > 10 || node.get("lonwgs84").asDouble() == 0) {
+        } else if (node.get("lonwgs84").asDouble() < -20 || node.get("lonwgs84").asDouble() > 10 || node.get("lonwgs84").asDouble() == 0) {
             return "(Valor de longitud no válido : " + node.get("lonwgs84").asText() + ")";
-        }else if(node.get("municipality") == null || node.get("municipality").asText().isBlank()){
+        } else if (node.get("municipality") == null || node.get("municipality").asText().isBlank()) {
             return "(No se encontró la localidad)";
-        }else if(node.get("postalCode") == null || node.get("postalCode").asText().isBlank()) {
+        } else if (node.get("postalCode") == null || node.get("postalCode").asText().isBlank()) {
             return "(No se encontró el código postal)";
-        }else if(node.get("postalCode").asDouble() < 1001 || node.get("postalCode").asDouble() > 52006){
+        } else if (node.get("postalCode").asDouble() < 1001 || node.get("postalCode").asDouble() > 52006) {
             return "(Valor de codigo postal no válido : " + node.get("postalCode").asText() + ")";
-        }else if(node.get("documentDescription" ) == null || node.get("documentDescription").asText().isBlank()){
+        } else if (node.get("documentDescription") == null || node.get("documentDescription").asText().isBlank()) {
             return "(No se encontró la descripcion)";
-        }else if(node.get("territory") == null || node.get("territory").asText().isBlank()) {
+        } else if (node.get("territory") == null || node.get("territory").asText().isBlank()) {
             return "(No se encontró la provincia)";
-        }else if(!Utilidades.isProvinciaEUS(node.get("territory").asText())){
+        } else if (!Utilidades.isProvinciaEUS(node.get("territory").asText())) {
             return "(Valor de provincia no válido : " + node.get("territory").asText() + ")";
-        }else{
+        } else {
             return "OK";
         }
     }

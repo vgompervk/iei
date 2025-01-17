@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/busqueda")
+@CrossOrigin(origins = "http://localhost:8080")
 public class BusquedaController {
 
     @Autowired
@@ -27,6 +28,12 @@ public class BusquedaController {
 
         List<Monumento> monumentos = monumentoService.buscarMonumentos(localidad, codigoPostal, provincia, tipo);
 
+        return ResponseEntity.ok(monumentos);
+    }
+    @GetMapping("/getAllMonumentos")
+    public ResponseEntity<List<Monumento>> getAllMonumentos() {
+
+        List<Monumento> monumentos = monumentoService.getAllMonumentos();
         return ResponseEntity.ok(monumentos);
     }
 }

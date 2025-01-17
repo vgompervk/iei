@@ -2,19 +2,24 @@ package com.example.project_iei.mapper;
 
 import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.entity.*;
+import com.example.project_iei.service.MonumentoService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 @Component
 public class MonumentoMapperFromXML {
 
+    @Autowired
+    MonumentoService monumentoService;
 
-    public static ResultadoCargaMonumentos mapJsonToMonumentos(String json) throws IOException {
+    public ResultadoCargaMonumentos mapJsonToMonumentos(String json) throws IOException {
         ResultadoCargaMonumentos resultado = new ResultadoCargaMonumentos();
 
         List<Monumento> monumentos = new ArrayList<>();
@@ -83,7 +88,9 @@ public class MonumentoMapperFromXML {
                         monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
                         fallosReparados.add("Fuente de datos: CLE. " + monumento.getNombre() + ". Operacion realizada: Reparar codigo postal e insertar" );
                     }
-                    monumentos.add(monumento);
+                    if(!monumentoService.existeMonumento(monumento.getNombre())){
+                        monumentos.add(monumento);
+                    }
                 }else{
                     fallosRechazados.add("Fuente de datos: CLE. " + monumento.getNombre() + " " + comprobacionMonumentoValido(monumentoNode));
                 }

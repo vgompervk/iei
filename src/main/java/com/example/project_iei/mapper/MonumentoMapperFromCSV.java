@@ -2,6 +2,7 @@ package com.example.project_iei.mapper;
 
 import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.entity.*;
+import com.example.project_iei.service.MonumentoService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openqa.selenium.By;
@@ -11,6 +12,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -21,8 +23,9 @@ import java.util.List;
 @Component
 public class MonumentoMapperFromCSV {
 
-
-    public static ResultadoCargaMonumentos mapJsonToMonumentos(String json) throws IOException {
+    @Autowired
+    MonumentoService monumentoService;
+    public  ResultadoCargaMonumentos mapJsonToMonumentos(String json) throws IOException {
         ResultadoCargaMonumentos resultado = new ResultadoCargaMonumentos();
 
         List<Monumento> monumentos = new ArrayList<>();
@@ -87,7 +90,9 @@ public class MonumentoMapperFromCSV {
                             monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
                             fallosReparados.add("Fuente de datos: CV. " + monumento.getNombre() + ". Operacion realizada: Reparar codigo postal e insertar" );
                         }
-                        monumentos.add(monumento);
+                        if(!monumentoService.existeMonumento(monumento.getNombre())) {
+                            monumentos.add(monumento);
+                        }
                     } else {
                         fallosRechazados.add("Fuente de datos: CV. " + monumento.getNombre() + " : " + "(No se pudo obtener el codigo postal a través de la API)");
                     }
