@@ -14,8 +14,7 @@ import com.example.project_iei.service.ProvinciaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -24,7 +23,8 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/almacen")
 public class AlmacenController {
     @Autowired
     private XmlConverter xmlConverter;
@@ -52,14 +52,13 @@ public class AlmacenController {
         return "cargar"; // Muestra el formulario
     }*/
 
-    @PostMapping("/almacen/cargarMonumentos")
-    public String cargarAlmacen(@RequestParam(value = "fuente", required = false) List<String> fuentes, Model model) {
+    @PostMapping("/cargarMonumentos")
+    public List<String> cargarAlmacen(@RequestBody List<String> fuentes) {
         List<Monumento> monumentosCargados = new ArrayList<>();
-        List<Monumento> monumentosSinDuplicados = new ArrayList<>();
         List<String> erroresReparados = new ArrayList<>();
         List<String> erroresRechazados = new ArrayList<>();
-        int registrosCargados = 0;
 
+        int registrosCargados = 0;
         for (String fuente : fuentes) {
             try {
                 HttpClient client = HttpClient.newHttpClient();
@@ -114,17 +113,20 @@ public class AlmacenController {
             }
         }
 
-        monumentosSinDuplicados = monumentosCargados.stream()
+        List<Monumento> monumentosSinDuplicados = monumentosCargados.stream()
                 .filter(Utilidades.distinctByKey(Monumento::getNombre)).toList();
 
         registrosCargados = monumentosSinDuplicados.size();
-        monumentoService.guardarMonumentos(monumentosCargados);
 
-        model.addAttribute("cargadosCorrectos", registrosCargados);
-        model.addAttribute("erroresReparados", erroresReparados);
-        model.addAttribute("erroresRechazados", erroresRechazados);
+        List<String> respuesta = new ArrayList<>();
+        respuesta.add("Monumentos cargados correctamente: " + registrosCargados);
+        respuesta.add("Errores reparados: " + erroresReparados.size());
+        respuesta.addAll(erroresReparados);
+        respuesta.add("Errores rechazados: " + erroresRechazados.size());
+        respuesta.addAll(erroresRechazados);
 
-        return "cargar"; // Retorna la vista 'cargar.html'
+        monumentoService.guardarMonumentos(monumentosSinDuplicados);
+        return respuesta;
     }
 
     /*@PostMapping("/borrar")

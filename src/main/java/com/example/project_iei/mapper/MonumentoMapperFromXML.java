@@ -74,18 +74,20 @@ public class MonumentoMapperFromXML {
                             monumento.getLocalidad().setNombre(poblacionNode.get("localidad").asText());
                         }
                     }
+
+                    if(!Utilidades.anyadirTilde(monumento.getProvincia().getNombre()).equals(monumento.getProvincia().getNombre())){
+                        monumento.getProvincia().setNombre(Utilidades.anyadirTilde(monumento.getProvincia().getNombre()));
+                        fallosReparados.add("Fuente de datos: CLE " + monumento.getNombre() + " Operacion realizada: Reparar acento e insertar" );
+                    }
+                    if (monumento.getCodigo_postal().length() == 4) {
+                        monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
+                        fallosReparados.add("Fuente de datos: CLE " + monumento.getNombre() + " Operacion realizada: Reparar codigo postal e insertar" );
+                    }
                     monumentos.add(monumento);
                 }else{
-                    fallosRechazados.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
+                    fallosRechazados.add("Fuente de datos: CLE " + monumento.getNombre() + " " + comprobacionMonumentoValido(monumentoNode));
                 }
-                if(!Utilidades.anyadirTilde(monumento.getProvincia().getNombre()).equals(monumento.getProvincia().getNombre())){
-                    monumento.getProvincia().setNombre(Utilidades.anyadirTilde(monumento.getProvincia().getNombre()));
-                    fallosReparados.add("Fuente de datos: CLE, " + monumento.getNombre() + ", Operacion realizada: Reparar acento e insertar" );
-                }
-                if (monumento.getCodigo_postal().length() == 4) {
-                    monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
-                    fallosReparados.add("Fuente de datos: CLE, " + monumento.getNombre() + ", Operacion realizada: Reparar codigo postal e insertar" );
-                }
+
 
             }
         }
