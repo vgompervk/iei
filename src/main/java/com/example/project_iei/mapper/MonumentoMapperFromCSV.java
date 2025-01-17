@@ -4,15 +4,12 @@ import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.entity.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.checkerframework.checker.units.qual.C;
-import org.locationtech.proj4j.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Component;
 
@@ -20,17 +17,17 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Component
 public class MonumentoMapperFromCSV {
 
 
-    public static TuplaMonumentosErrores mapJsonToMonumentos(String json) throws IOException {
-        TuplaMonumentosErrores resultado = new TuplaMonumentosErrores();
+    public static ResultadoCargaMonumentos mapJsonToMonumentos(String json) throws IOException {
+        ResultadoCargaMonumentos resultado = new ResultadoCargaMonumentos();
 
         List<Monumento> monumentos = new ArrayList<>();
-        List<String> fallos = new ArrayList<>();
+        List<String> fallosReparados = new ArrayList<>();
+        List<String> fallosRechazados = new ArrayList<>();
 
         List<String> datosUtm = new ArrayList<>();
 
@@ -66,10 +63,6 @@ public class MonumentoMapperFromCSV {
                     monumento.getLocalidad().setNombre(datosUtm.get(4));
                     datosUtm.clear();
 
-                    if (monumento.getCodigo_postal().length() == 4) {
-                        monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
-                    }
-
 
                     if (node.get("DENOMINACION") != null && node.get("CLASIFICACION") != null) {
                         monumento.setDescripcion(node.get("CLASIFICACION").asText() + ": " + node.get("DENOMINACION").asText());
@@ -88,26 +81,24 @@ public class MonumentoMapperFromCSV {
                     if (monumento.getCodigo_postal() != null && !monumento.getCodigo_postal().isBlank()) {
                         monumentos.add(monumento);
                     } else {
-                        fallos.add(monumento.getNombre() + " : " + "(No se pudo obtener el codigo postal a través de la API)");
+                        fallosRechazados.add(monumento.getNombre() + " : " + "(No se pudo obtener el codigo postal a través de la API)");
                     }
-                }else if(comprobacionMonumentoValido(node).equals("CHECK")){
-                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(node));
                 }else{
-                    fallos.add("Fuente de datos: CLE, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(node));
+                    fallosRechazados.add("Fuente de datos: CV, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(node));
+                }
+                if(!Utilidades.anyadirTilde(monumento.getProvincia().getNombre()).equals(monumento.getProvincia().getNombre())){
+                    monumento.getProvincia().setNombre(Utilidades.anyadirTilde(monumento.getProvincia().getNombre()));
+                    fallosReparados.add("Fuente de datos: CV, " + monumento.getNombre() + ", Operacion realizada: Reparar acento e insertar" );
+                }
+                if (monumento.getCodigo_postal().length() == 4) {
+                    monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
+                    fallosReparados.add("Fuente de datos: CV, " + monumento.getNombre() + ", Operacion realizada: Reparar codigo postal e insertar" );
                 }
             }
         }
-        if (!fallos.isEmpty()) {
-            System.out.println("----------------------------------------------------------------------------------------------------------------------------");
-            System.out.println("Los siguientes monumentos no han sido insertados en la base de datos:");
-            for (String fallo : fallos) {
-                System.out.println(fallo);
-            }
-            System.out.println("----------------------------------------------------------------------------------------------------------------------------");
-        }
         resultado.setMonumentos(monumentos);
-        resultado.setFallosReparados(fallos);
-        resultado.setFallosRechazados(fallos);
+        resultado.setFallosReparados(fallosReparados);
+        resultado.setFallosRechazados(fallosRechazados);
         return resultado;
     }
 

@@ -4,7 +4,6 @@ import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.entity.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
 
@@ -15,11 +14,12 @@ import java.util.List;
 public class MonumentoMapperFromJSON {
 
 
-    public static TuplaMonumentosErrores mapJsonToMonumentos(String json) throws IOException {
-        TuplaMonumentosErrores resultado = new TuplaMonumentosErrores();
+    public static ResultadoCargaMonumentos mapJsonToMonumentos(String json) throws IOException {
+        ResultadoCargaMonumentos resultado = new ResultadoCargaMonumentos();
 
         List<Monumento> monumentos = new ArrayList<>();
-        List<String> fallos = new ArrayList<>();
+        List<String> fallosRechazados = new ArrayList<>();
+        List<String> fallosReparados = new ArrayList<>();
 
         // Parsear el JSON
         ObjectMapper objectMapper = new ObjectMapper();
@@ -70,24 +70,22 @@ public class MonumentoMapperFromJSON {
 
                     // Agregar a la lista
                     monumentos.add(monumento);
-                }else if(comprobacionMonumentoValido(monumentoNode).equals("CHECK")){
-                    fallos.add("Fuente de datos: EUS, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
                 }else{
-                    fallos.add("Fuente de datos: EUS, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
+                    fallosRechazados.add("Fuente de datos: EUS, " + monumento.getNombre() + ", " + comprobacionMonumentoValido(monumentoNode));
+                }
+                if(!Utilidades.anyadirTilde(monumento.getProvincia().getNombre()).equals(monumento.getProvincia().getNombre())){
+                    monumento.getProvincia().setNombre(Utilidades.anyadirTilde(monumento.getProvincia().getNombre()));
+                    fallosReparados.add("Fuente de datos: EUS, " + monumento.getNombre() + ", Operacion realizada: Reparar acento e insertar" );
+                }
+                if (monumento.getCodigo_postal().length() == 4) {
+                    monumento.setCodigo_postal("0" + monumento.getCodigo_postal());
+                    fallosReparados.add("Fuente de datos: EUS, " + monumento.getNombre() + ", Operacion realizada: Reparar codigo postal e insertar" );
                 }
             }
         }
-        if(!fallos.isEmpty()){
-            System.out.println("----------------------------------------------------------------------------------------------------------------------------");
-            System.out.println("Los siguientes monumentos no han sido insertados en la base de datos:");
-            for(String fallo : fallos){
-                System.out.println(fallo);
-            }
-            System.out.println("----------------------------------------------------------------------------------------------------------------------------");
-        }
         resultado.setMonumentos(monumentos);
-        resultado.setFallosReparados(fallos);
-        resultado.setFallosRechazados(fallos);
+        resultado.setFallosReparados(fallosReparados);
+        resultado.setFallosRechazados(fallosRechazados);
         return resultado;
     }
 

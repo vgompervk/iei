@@ -1,9 +1,8 @@
 package com.example.project_iei.entity;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class TuplaMonumentosErrores {
+public class ResultadoCargaMonumentos {
     private List<Monumento> monumentos;
     private List<String> fallosReparados;
     private List<String> fallosRechazados;

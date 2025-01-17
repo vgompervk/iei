@@ -4,7 +4,7 @@ import com.example.project_iei.Utilidades.CsvConverter;
 import com.example.project_iei.Utilidades.Utilidades;
 import com.example.project_iei.Utilidades.XmlConverter;
 import com.example.project_iei.entity.Monumento;
-import com.example.project_iei.entity.TuplaMonumentosErrores;
+import com.example.project_iei.entity.ResultadoCargaMonumentos;
 import com.example.project_iei.mapper.MonumentoMapperFromCSV;
 import com.example.project_iei.mapper.MonumentoMapperFromXML;
 import com.example.project_iei.mapper.MonumentoMapperFromJSON;
@@ -14,12 +14,13 @@ import com.example.project_iei.service.ProvinciaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.io.File;
-import java.nio.file.Files;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,29 +43,17 @@ public class AlmacenController {
     @Autowired
     private ProvinciaService provinciaService;
 
-
-    @GetMapping("/")
-    public String redireccionarFormulario() {
-        // Redirige a la página del formulario de carga
-        return "redirect:/almacen/cargar";
-    }
-
-    @GetMapping("/almacen/cargar")
+    /*@GetMapping("/almacen/cargar")
     public String mostrarFormulario(Model model) {
         // Inicializamos valores por defecto
         model.addAttribute("cargadosCorrectos", 0);
         model.addAttribute("erroresReparados", new ArrayList<>());
         model.addAttribute("erroresRechazados", new ArrayList<>());
         return "cargar"; // Muestra el formulario
-    }
+    }*/
 
-    @PostMapping("/almacen/cargar")
+    @PostMapping("/almacen/cargarMonumentos")
     public String cargarAlmacen(@RequestParam(value = "fuente", required = false) List<String> fuentes, Model model) {
-        if (fuentes == null || fuentes.isEmpty()) {
-            model.addAttribute("error", "Debe seleccionar al menos una fuente.");
-            return "cargar";
-        }
-
         List<Monumento> monumentosCargados = new ArrayList<>();
         List<Monumento> monumentosSinDuplicados = new ArrayList<>();
         List<String> erroresReparados = new ArrayList<>();
@@ -73,39 +62,45 @@ public class AlmacenController {
 
         for (String fuente : fuentes) {
             try {
+                HttpClient client = HttpClient.newHttpClient();
                 switch (fuente) {
                     case "Castilla y León": {
-                        // Proceso para XML
-                        String filePathXML = "C:\\projects-iei\\monumentos.xml";
-                        String jsonResult = xmlConverter.convert(new File(filePathXML));
-                        TuplaMonumentosErrores tupla = new TuplaMonumentosErrores();
-                        tupla = monumentoMapperFromXML.mapJsonToMonumentos(jsonResult);
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create("http://localhost:8081/api/wrapper/cyl"))
+                                .GET()
+                                .build();
+
+                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                        String jsonResult = response.body();
+                        ResultadoCargaMonumentos tupla = monumentoMapperFromXML.mapJsonToMonumentos(jsonResult);
                         monumentosCargados.addAll(tupla.getMonumentos());
                         erroresReparados.addAll(tupla.getFallosReparados());
                         erroresRechazados.addAll(tupla.getFallosRechazados());
                         break;
                     }
                     case "Comunitat Valenciana": {
-                        // Proceso para CSV
-                        String filePathCSV = "C:\\projects-iei\\bienes_inmuebles_interes_cultural.csv";
-                        String jsonResult = csvConverter.convert(new File(filePathCSV));
-                        TuplaMonumentosErrores tupla = new TuplaMonumentosErrores();
-                        tupla = monumentoMapperFromCSV.mapJsonToMonumentos(jsonResult);
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create("http://localhost:8082/api/wrapper/cv"))
+                                .GET()
+                                .build();
+
+                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                        String jsonResult = response.body();
+                        ResultadoCargaMonumentos tupla = monumentoMapperFromCSV.mapJsonToMonumentos(jsonResult);
                         monumentosCargados.addAll(tupla.getMonumentos());
                         erroresReparados.addAll(tupla.getFallosReparados());
                         erroresRechazados.addAll(tupla.getFallosRechazados());
                         break;
                     }
                     case "Euskadi": {
-                        // Proceso para JSON
-                        String filePathJSON = "C:\\projects-iei\\edificios.json";
-                        File fileJSON = new File(filePathJSON);
-                        String jsonResult = "";
-                        List<String> lines = Files.readAllLines(fileJSON.toPath());
-                        lines.removeIf(line -> line.trim().equals("\"address\" : \"\","));
-                        jsonResult = String.join("", lines);
-                        TuplaMonumentosErrores tupla = new TuplaMonumentosErrores();
-                        tupla = monumentoMapperFromJSON.mapJsonToMonumentos(jsonResult);
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create("http://localhost:8083/api/wrapper/euskadi"))
+                                .GET()
+                                .build();
+
+                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                        String jsonResult = response.body();
+                        ResultadoCargaMonumentos tupla = monumentoMapperFromJSON.mapJsonToMonumentos(jsonResult);
                         monumentosCargados.addAll(tupla.getMonumentos());
                         erroresReparados.addAll(tupla.getFallosReparados());
                         erroresRechazados.addAll(tupla.getFallosRechazados());
@@ -129,10 +124,10 @@ public class AlmacenController {
         model.addAttribute("erroresReparados", erroresReparados);
         model.addAttribute("erroresRechazados", erroresRechazados);
 
-        return "cargar";
+        return "cargar"; // Retorna la vista 'cargar.html'
     }
 
-    @PostMapping("/almacen/borrar")
+    /*@PostMapping("/borrar")
     public String borrarBaseDeDatos(Model model) {
         try {
             monumentoService.borrarTodos();
@@ -143,5 +138,5 @@ public class AlmacenController {
             model.addAttribute("error", "Error al borrar la base de datos: " + e.getMessage());
         }
         return "cargar"; // Redirige al formulario de carga
-    }
+    }*/
 }
