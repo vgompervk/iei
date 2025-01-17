@@ -11,9 +11,13 @@ import com.example.project_iei.mapper.MonumentoMapperFromJSON;
 import com.example.project_iei.service.LocalidadService;
 import com.example.project_iei.service.MonumentoService;
 import com.example.project_iei.service.ProvinciaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -25,7 +29,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/almacen")
+@Tag(name = "AlmacenController", description = "Controlador para gestionar el almacenamiento de monumentos")
 public class AlmacenController {
+
     @Autowired
     private XmlConverter xmlConverter;
     @Autowired
@@ -43,61 +49,67 @@ public class AlmacenController {
     @Autowired
     private ProvinciaService provinciaService;
 
+    /**
+     * Carga monumentos desde varias fuentes externas y los almacena en la base de datos.
+     *
+     * @param fuentes Lista de fuentes de las que se obtendrán los monumentos.
+     * @return Lista de mensajes con información sobre los registros cargados y errores.
+     */
     @PostMapping("/cargarMonumentos")
+    @Operation(summary = "Cargar monumentos", description = "Carga monumentos desde fuentes externas y los guarda en la base de datos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Monumentos cargados correctamente",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = List.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los datos proporcionados",
+                    content = @Content)
+    })
     public List<String> cargarAlmacen(@RequestBody List<String> fuentes) {
         List<Monumento> monumentosCargados = new ArrayList<>();
         List<String> erroresReparados = new ArrayList<>();
         List<String> erroresRechazados = new ArrayList<>();
 
-        int registrosCargados = 0;
         for (String fuente : fuentes) {
             try {
                 HttpClient client = HttpClient.newHttpClient();
                 switch (fuente) {
-                    case "Castilla y León": {
+                    case "Castilla y León" -> {
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(URI.create("http://localhost:8081/api/wrapper/cyl"))
                                 .GET()
                                 .build();
 
                         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                        String jsonResult = response.body();
-                        ResultadoCargaMonumentos tupla = monumentoMapperFromXML.mapJsonToMonumentos(jsonResult);
+                        ResultadoCargaMonumentos tupla = monumentoMapperFromXML.mapJsonToMonumentos(response.body());
                         monumentosCargados.addAll(tupla.getMonumentos());
                         erroresReparados.addAll(tupla.getFallosReparados());
                         erroresRechazados.addAll(tupla.getFallosRechazados());
-                        break;
                     }
-                    case "Comunitat Valenciana": {
+                    case "Comunitat Valenciana" -> {
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(URI.create("http://localhost:8082/api/wrapper/cv"))
                                 .GET()
                                 .build();
 
                         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                        String jsonResult = response.body();
-                        ResultadoCargaMonumentos tupla = monumentoMapperFromCSV.mapJsonToMonumentos(jsonResult);
+                        ResultadoCargaMonumentos tupla = monumentoMapperFromCSV.mapJsonToMonumentos(response.body());
                         monumentosCargados.addAll(tupla.getMonumentos());
                         erroresReparados.addAll(tupla.getFallosReparados());
                         erroresRechazados.addAll(tupla.getFallosRechazados());
-                        break;
                     }
-                    case "Euskadi": {
+                    case "Euskadi" -> {
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(URI.create("http://localhost:8083/api/wrapper/euskadi"))
                                 .GET()
                                 .build();
 
                         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                        String jsonResult = response.body();
-                        ResultadoCargaMonumentos tupla = monumentoMapperFromJSON.mapJsonToMonumentos(jsonResult);
+                        ResultadoCargaMonumentos tupla = monumentoMapperFromJSON.mapJsonToMonumentos(response.body());
                         monumentosCargados.addAll(tupla.getMonumentos());
                         erroresReparados.addAll(tupla.getFallosReparados());
                         erroresRechazados.addAll(tupla.getFallosRechazados());
-                        break;
                     }
-                    default:
-                        throw new IllegalArgumentException("Fuente desconocida: " + fuente);
+                    default -> throw new IllegalArgumentException("Fuente desconocida: " + fuente);
                 }
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());
@@ -107,29 +119,37 @@ public class AlmacenController {
         List<Monumento> monumentosSinDuplicados = monumentosCargados.stream()
                 .filter(Utilidades.distinctByKey(Monumento::getNombre)).toList();
 
-        registrosCargados = monumentosSinDuplicados.size();
+        monumentoService.guardarMonumentos(monumentosSinDuplicados);
 
         List<String> respuesta = new ArrayList<>();
-        respuesta.add("Monumentos cargados correctamente: " + registrosCargados);
+        respuesta.add("Monumentos cargados correctamente: " + monumentosSinDuplicados.size());
         respuesta.add("Errores reparados: " + erroresReparados.size());
         respuesta.addAll(erroresReparados);
         respuesta.add("Errores rechazados: " + erroresRechazados.size());
         respuesta.addAll(erroresRechazados);
 
-        monumentoService.guardarMonumentos(monumentosSinDuplicados);
         return respuesta;
     }
 
+    /**
+     * Borra todos los datos de la base de datos.
+     *
+     * @return Mensaje indicando el estado de la operación.
+     */
     @DeleteMapping("/borrar")
-    public String borrarBaseDeDatos(Model model) {
+    @Operation(summary = "Borrar base de datos", description = "Elimina todos los datos almacenados en la base de datos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Base de datos borrada correctamente"),
+            @ApiResponse(responseCode = "500", description = "Error al borrar la base de datos")
+    })
+    public String borrarBaseDeDatos() {
         try {
             monumentoService.borrarTodos();
             localidadService.borrarTodos();
             provinciaService.borrarTodos();
-            model.addAttribute("mensaje", "Base de datos borrada correctamente.");
+            return "Base de datos borrada correctamente.";
         } catch (Exception e) {
-            model.addAttribute("error", "Error al borrar la base de datos: " + e.getMessage());
+            return "Error al borrar la base de datos: " + e.getMessage();
         }
-        return "cargar"; // Redirige al formulario de carga
     }
 }
