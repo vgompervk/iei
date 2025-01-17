@@ -28,10 +28,9 @@ public class MonumentoService {
     }
 
     public void guardarMonumentos(List<Monumento> monumentos) {
-        List<Monumento> monumentosSinDuplicados = monumentos.stream()
-                .filter(Utilidades.distinctByKey(Monumento::getNombre)).toList();
 
-        for(Monumento monumento : monumentosSinDuplicados){
+
+        for(Monumento monumento : monumentos){
             String nombreProvincia = monumento.getProvincia().getNombre();
             Provincia provinciaExistente = provinciaRepository.findByNombre(Utilidades.anyadirTilde(nombreProvincia));
             if (provinciaExistente == null) {

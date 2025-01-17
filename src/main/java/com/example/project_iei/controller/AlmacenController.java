@@ -129,7 +129,7 @@ public class AlmacenController {
         return respuesta;
     }
 
-    /*@PostMapping("/borrar")
+    @DeleteMapping("/borrar")
     public String borrarBaseDeDatos(Model model) {
         try {
             monumentoService.borrarTodos();
@@ -140,5 +140,5 @@ public class AlmacenController {
             model.addAttribute("error", "Error al borrar la base de datos: " + e.getMessage());
         }
         return "cargar"; // Redirige al formulario de carga
-    }*/
+    }
 }
