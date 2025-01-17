@@ -54,8 +54,8 @@ public class MonumentoMapperFromJSON {
                         monumento.getLocalidad().setNombre(monumentoNode.get("municipality").asText());
                     }
 
-                    monumento.setLongitud(monumentoNode.get("latwgs84").asDouble());
-                    monumento.setLatitud(monumentoNode.get("lonwgs84").asDouble());
+                    monumento.setLongitud(monumentoNode.get("lonwgs84").asDouble());
+                    monumento.setLatitud(monumentoNode.get("latwgs84").asDouble());
 
                     if (monumentoNode.get("documentDescription") != null) {
                         monumento.setDescripcion(monumentoNode.get("documentDescription").asText());

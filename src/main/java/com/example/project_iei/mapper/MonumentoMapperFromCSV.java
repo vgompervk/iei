@@ -56,8 +56,8 @@ public class MonumentoMapperFromCSV {
                     monumento.setLocalidad(new Localidad());
 
                     datosUtm = convertUTMToLatLng(node.get("UTMESTE").asInt(), node.get("UTMNORTE").asInt());
-                    monumento.setLatitud(Double.valueOf(datosUtm.get(0)));
-                    monumento.setLongitud(Double.valueOf(datosUtm.get(1)));
+                    monumento.setLongitud(Double.valueOf(datosUtm.get(0)));
+                    monumento.setLatitud(Double.valueOf(datosUtm.get(1)));
                     monumento.setDireccion(datosUtm.get(2));
                     monumento.setCodigo_postal(datosUtm.get(3));
                     monumento.getLocalidad().setNombre(datosUtm.get(4));
